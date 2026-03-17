@@ -92,37 +92,3 @@ func TestDoReturnsTaskError(t *testing.T) {
 	}
 }
 
-func TestSubmitAsyncCanFeedReplyChannel(t *testing.T) {
-	seq := mustNewSequencer(t)
-
-	type reply struct {
-		orderID string
-		err     error
-	}
-
-	replyCh := make(chan reply, 1)
-	handle, err := seq.SubmitAsync(context.Background(), "u-1", func(context.Context) (<-chan error, error) {
-		done := make(chan error, 1)
-		go func() {
-			replyCh <- reply{orderID: "order-1"}
-			close(replyCh)
-			done <- nil
-			close(done)
-		}()
-		return done, nil
-	})
-	if err != nil {
-		t.Fatalf("submit async: %v", err)
-	}
-
-	gotReply := <-replyCh
-	if gotReply.orderID != "order-1" {
-		t.Fatalf("got order id %q, want %q", gotReply.orderID, "order-1")
-	}
-	if gotReply.err != nil {
-		t.Fatalf("got unexpected reply err: %v", gotReply.err)
-	}
-	if err := handle.Wait(); err != nil {
-		t.Fatalf("wait: %v", err)
-	}
-}

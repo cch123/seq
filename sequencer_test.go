@@ -82,35 +82,6 @@ func TestDifferentKeysRunInParallel(t *testing.T) {
 	waitAll(t, hA, hB)
 }
 
-func TestAsyncTaskBlocksNextUntilCompletion(t *testing.T) {
-	seq := mustNewSequencer(t)
-
-	asyncDone := make(chan error, 1)
-	startedNext := make(chan struct{}, 1)
-
-	h1, err := seq.SubmitAsync(context.Background(), "u-1", func(context.Context) (<-chan error, error) {
-		return asyncDone, nil
-	})
-	if err != nil {
-		t.Fatalf("submit async: %v", err)
-	}
-	h2, err := seq.Submit(context.Background(), "u-1", func(context.Context) error {
-		startedNext <- struct{}{}
-		return nil
-	})
-	if err != nil {
-		t.Fatalf("submit next: %v", err)
-	}
-
-	assertNoReceiveStruct(t, startedNext, 120*time.Millisecond)
-
-	asyncDone <- nil
-	close(asyncDone)
-
-	assertReceiveStruct(t, startedNext)
-	waitAll(t, h1, h2)
-}
-
 func TestCancelBeforeStartSkipsTask(t *testing.T) {
 	seq := mustNewSequencer(t)
 

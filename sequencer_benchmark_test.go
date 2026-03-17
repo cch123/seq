@@ -80,28 +80,6 @@ func BenchmarkSequencerParallelKeys(b *testing.B) {
 	})
 }
 
-func BenchmarkSequencerAsyncSingleKeyRoundTrip(b *testing.B) {
-	seq := mustNewBenchmarkSequencer[string](b)
-	ctx := context.Background()
-	key := "acct-1"
-	done := closedErrChan()
-
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		handle, err := seq.SubmitAsync(ctx, key, func(context.Context) (<-chan error, error) {
-			return done, nil
-		})
-		if err != nil {
-			b.Fatalf("submit async: %v", err)
-		}
-		if err := handle.Wait(); err != nil {
-			b.Fatalf("wait async: %v", err)
-		}
-	}
-}
-
 func mustNewBenchmarkSequencer[K comparable](b *testing.B) *Sequencer[K] {
 	b.Helper()
 
@@ -117,12 +95,6 @@ func mustNewBenchmarkSequencer[K comparable](b *testing.B) *Sequencer[K] {
 
 func noopTask(context.Context) error {
 	return nil
-}
-
-func closedErrChan() <-chan error {
-	ch := make(chan error)
-	close(ch)
-	return ch
 }
 
 func minInt(a, b int) int {

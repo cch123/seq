@@ -20,11 +20,6 @@ var (
 // key starts only after this function returns.
 type Task func(context.Context) error
 
-// AsyncTask starts asynchronous work and returns a completion channel. The next
-// task for the same key starts only after that channel yields one error value or
-// is closed.
-type AsyncTask func(context.Context) (<-chan error, error)
-
 // Observer receives best-effort lifecycle callbacks. Callbacks run
 // asynchronously; panics are recovered and discarded.
 type Observer[K comparable] interface {
@@ -246,29 +241,6 @@ func (s *Sequencer[K]) Do(ctx context.Context, key K, task Task) error {
 	return handle.Wait()
 }
 
-// SubmitAsync enqueues an asynchronous task. The next task for the same key is
-// blocked until the returned channel yields one error or closes.
-func (s *Sequencer[K]) SubmitAsync(ctx context.Context, key K, task AsyncTask) (*TaskHandle, error) {
-	if task == nil {
-		return nil, errors.New("async task must not be nil")
-	}
-
-	return s.submit(ctx, key, func(runCtx context.Context) error {
-		done, err := task(runCtx)
-		if err != nil {
-			return err
-		}
-		if done == nil {
-			return nil
-		}
-
-		err, ok := <-done
-		if !ok {
-			return nil
-		}
-		return err
-	})
-}
 
 // PendingForKey returns the number of running + queued tasks for a key.
 func (s *Sequencer[K]) PendingForKey(key K) int {
