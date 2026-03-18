@@ -1,3 +1,3 @@
-module github.com/cch123/seq
+module github.com/cch123/sequencer
 
 go 1.22

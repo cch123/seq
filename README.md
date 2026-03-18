@@ -1,6 +1,6 @@
-# github.com/cch123/seq
+# github.com/cch123/sequencer
 
-`github.com/cch123/seq` 是一个 **进程内、按 key 串行、跨 key 并行** 的 Go 组件，适合放在同一个交易服务内，为 `OMS` 和 `Settlement` 共享的账户状态更新提供顺序化执行能力。
+`github.com/cch123/sequencer` 是一个 **进程内、按 key 串行、跨 key 并行** 的 Go 组件，适合放在同一个交易服务内，为 `OMS` 和 `Settlement` 共享的账户状态更新提供顺序化执行能力。
 
 它参考了 Java `ExecutionSequencer` 的核心语义：
 
@@ -129,7 +129,7 @@ import (
 	"context"
 	"log"
 
-	sequencer "github.com/cch123/seq"
+	"github.com/cch123/sequencer"
 )
 
 func main() {
